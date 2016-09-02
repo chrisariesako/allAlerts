@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<script language="Cache" method="OnPreHTTP" arguments="" returntype="%Boolean">
+	q 1
+</script>
+
+<script language="cache" runat="server">
+</script>
+
+<script type="text/javascript">
+	window.resizeTo(1550,(screen.availHeight-100));
+	window.moveTo(((screen.availWidth/2)-(1550/2)),((screen.availHeight/2)-(950/2)));
+</script>
+
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<meta content="Matrix, The Matrix" name="keywords">
+<link rel="icon" href="Images/favicon.ico" type="image/x-icon">
+<link rel="shortcut icon" href="Images/favicon.ico" type="image/x-icon">
+<link href="CSS/default.css" rel="stylesheet" type="text/css">
+<link href="CSS/epoch.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="js/epoch.js"></script>
+<title>All Alerts</title>
+<style type="text/css">
+.style1 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	font-weight: bold;
+	color: #356033;
+	height: 22px;
+}
+.style2 {
+	vertical-align: text-bottom;}
+	
+.button {
+    background-color: #097BEA;  /*#4CAF50;  Blue */
+    border: none;
+    color: white;
+	height:30px;
+    text-align: center;
+    text-decoration: none;
+    display: inline;
+    font-size: 10px;
+    margin: 1px 1px;
+    cursor: pointer;
+}
+
+.button3 {background-color: #f44336;
+		color:maroon;
+		border: none;
+		height:30px;
+		text-align: center;
+		text-decoration: none;
+		display: inline;
+		font-size: 10px;
+		margin: 1px 1px;
+} /* Red */
+.button5 {background-color: #e7e7e7;	
+		color:darkgray;
+		border: none;
+		height:30px;
+		text-align: center;
+		text-decoration: none;
+		display: inline;
+		font-size: 10px;
+		margin: 1px 1px;
+} /* Gray */
+
+</style>
+</head>
+
+<body>
+	<div width="100%" style="height:99%;table-layout:fixed;">
+		
+		<div width="100%" style="height:30px;table-layout:fixed; padding:5px;background-color:#097bea;">
+			<img id="menuHead" title="" class="MenuItem1" height="112" src="Menus/Reports.png" width="157" style="width: 23px; margin-left:15px; height:30px"> <span class="formHead">&nbsp;All Alerts</span>
+		</div>
+		
+		<div style="height:auto; width:200px; margin:35px 35px; float:right; border:1px solid black;">
+			<table>
+				<tr>
+					<td>
+						<div style="height:15px; width:15px; background-color:#097BEA; border:1px solid black;"><div style="height:15px; width:175px;"><span style="float:right; font-size:15px;">Not Acknowledged yet</span></div></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="height:15px; width:15px; background-color:#e7e7e7; border:1px solid black;"><div style="height:15px; width:177px;"><span style="float:right; font-size:15px;">Already Acknowledged</span></div></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="height:15px; width:15px; background-color:#f44336; border:1px solid black;"><div style="height:15px; width:155px;"><span style="float:right; font-size:15px;">No Delegates listed</span></div></div>
+					</td>
+				</tr>
+			</table>
+		</div>
+		
+		<div width="100%" style="height:auto;table-layout:fixed; padding:5px; background-color:#ddd;">
+			<form name="F1" id="F1">
+				<table  style="position:relative;width:30%;border: 1px solid #097BEA;  background-color:#fff; margin-left:15px" cellpadding="1" cellspacing="2" border="1" >
+					<tr>
+						<td width="100px">
+							Description:
+						</td>
+						<td>
+							List of all alerts.
+						</td>
+						<tr>
+							<td width="100px">Trial:</td>
+							<td>
+								<select name="Drp1" id="Drp1">
+								<option value='%%'></option>
+								<option value="LEMTRADA">LEMTRADA&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+								<option value="AMS3">AMS3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+								</select>
+							</td>
+						</tr>
+						
+						<td width="100px">From :</td>
+						<td><input id="T1" name="T1" type="text" class="textCap" style="font-size:10pt;" size="10" maxlength="10" readonly>To:&nbsp;&nbsp;<input id="T2" name="T2" type="text" class="textCap" style="font-size:10pt;" size="10" maxlength="10" readonly>&nbsp;&nbsp;<span  style="display:none">Date Limit:<label id="dtlim"></label></span></td>													
+					</tr>
+				</table>
+				
+				<div width="auto" style="height:25px;table-layout:fixed; padding:5px; background-color:ddd;">
+					<table style="width:auto;font-size:9pt">
+						<tr>
+							<td width="80px" style="text-align:right"><input name="B1" id="B1" type="button" value="Show Result" class="buttons" style="width:150px; height:20px" onclick="jPopView('ShowResult')"></td>
+							<td width="80px" style="text-align:right"><input name="B2" id="B2" type="button" value="Last 24 Hours" class="buttons" style="width:150px; height:20px" onclick="jPopView('Last24Hours')"></td>
+							<td width="80px" style="text-align:right"><input name="B3" id="B3" type="button" value="Last 72 Hours" class="buttons" style="width:150px; height:20px" onclick="jPopView('Last72Hours')"></td>
+							<td width="40px" style="text-align:right"><input name="R1" id="R1" type="radio" value="All" onclick="R1[0].checked=true;" checked=true></td>
+							<td width="10px"><span class="cursor" onclick="R1[0].checked=true;" value="All">All</span></td>
+							<td width="40px" style="text-align:right"><input name="R1" id="R1" type="radio" onclick="R1[1].checked=true;" value="Acknowledged"></td>
+							<td width="40px"><span class="cursor" onclick="R1[1].checked=true;"  value="Acknowledged">Acknowledged</span></td>
+							<td width="40px" style="text-align:right"><input name="R1" id="R1" type="radio" onclick="R1[2].checked=true;" value="Unacknowledged"></td>
+							<td ><span class="cursor" onclick="R1[2].checked=true;"  value="Unacknowledged">Unacknowledged</span></td>
+						</tr>
+					</table>
+				</div>
+			</form>
+		</div>
+		
+		<div width="100%" style="font-size:9pt;height:auto;table-layout:fixed; background-color:ddd;">
+			<div id="Records" style="height:20px; margin-left:15px;"></div>
+		</div>
+		
+		<div width="100%" style="height:auto;table-layout:fixed;background-color:#097bea;">
+			<div style="margin-top:0px;position:absolute;height:75%;width:99.3%;table-layout: fixed;overflow-y: scroll; word-wrap:break-word;border:1px solid #097BEA;background-color: #ddd;">
+				<table id="tr4A" style="position:absolute;width:auto;table-layout: fixed; word-wrap:break-word; background-color: white" cellpadding="10" cellspacing="2" border="1" bordercolor="#097BEA">
+					<tr style="width:100%;background-color:#097BEA;color:white;" align="center">
+						<td width="4.8%" style="font-weight:bold">Patient ID</td>
+						<td width="16%" style="font-weight:bold">Patient Name<br>
+							<span onclick="jSort('3')"  style="cursor:pointer;"><img style="height: 5px" id="Resultasc" src="images/SortTable/asc.gif" ></span>
+							<span onclick="jSort('4')"  style="cursor:pointer;"><img style="height: 5px" id="Resultdesc" src="images/SortTable/desc.gif"></span><br>
+						</td>
+						<td width="3.7%" style="font-weight:bold">Alert Level
+							<span onclick="jSort('1')"  style="cursor:pointer;"><img style="height: 5px" id="Resultasc" src="images/SortTable/asc.gif" ></span>
+							<span onclick="jSort('2')"  style="cursor:pointer;"><img style="height: 5px" id="Resultdesc" src="images/SortTable/desc.gif"></span><br>
+						</td>
+						<td width="6%" style="font-weight:bold">Analyte<br>
+							<span onclick="jSort('5')"  style="cursor:pointer;"><img style="height: 5px" id="Resultasc" src="images/SortTable/asc.gif" ></span>
+							<span onclick="jSort('6')"  style="cursor:pointer;"><img style="height: 5px" id="Resultdesc" src="images/SortTable/desc.gif"></span><br>
+						</td>
+						<td width="4.2%" style="font-weight:bold">Result</td>
+						<td width="7.1%" style="font-weight:bold">Initial Alert<br>
+							<span onclick="jSort('7')"  style="cursor:pointer;"><img style="height: 5px" id="Resultasc" src="images/SortTable/asc.gif" ></span>
+							<span onclick="jSort('8')"  style="cursor:pointer;"><img style="height: 5px" id="Resultdesc" src="images/SortTable/desc.gif"></span><br>
+						</td>
+						<td width="7.1%" style="font-weight:bold">1st Resend</td>
+						<td width="7.1%" style="font-weight:bold">2nd Resend</td>
+						<td width="14%" style="font-weight:bold">Acknowledgements</td>
+						<td width="10%" style="font-weight:bold">Primary Neurologist</td>
+						<td width="21%" style="font-weight:bold"><span>Manual Acknowledgement</span><br><br> <span style="font-size:9.5;">On Behalf Of</span></td>
+					</tr>  
+				</table>
+			</div>
+		</div>
+	</div>	
+</body>
+<script type="text/javascript">
+R1=self.F1.R1
+Drp1=self.F1.Drp1,T1=self.F1.T1,T2=self.F1.T2,B1=self.F1.B1,B2=self.F1.B2,B3=self.F1.B3,B4=self.F1.B4,B5=self.F1.B5,B6=self.F1.B6
+var dtlimit=""
+var sortby=""
+var tempsort=""
+var Rdval=""
+var sortval=0
+cal1  = new Epoch('epoch_popup','popup',document.getElementById('T1'))
+cal2  = new Epoch('epoch_popup','popup',document.getElementById('T2'))
+
+function jInitMe(){
+	//document.getElementById('tr4A').rows[0].style.position="fixed";
+		//#server(..cInitMe(tempsort,btnval))#
+}
+
+function jPopView(btnval){
+		jCleartr4A();
+		sortby=btnval;
+		#server(..cPopView(tempsort,btnval,T1.value,T2.value,R1.value,Drp1.value))#
+}
+function jCleartr4A(){
+	rows=document.getElementById("tr4A").rows
+	RowNo=rows.length
+	if (RowNo>1){
+		while (RowNo>1)
+		{
+			document.getElementById("tr4A").deleteRow(RowNo-1)
+			RowNo=RowNo-1
+		}
+	}
+}
+
+function jSort(temp)
+{	
+	tempsort=temp;
+	jPopView(sortby);
+	//jCleartr4A();
+	//#server(..cSort(temp))#
+}
+
+function jAckbutton(m,m2,m3,m4,m5)
+{
+	//alert(1);
+	#server(..cAckbutton(m,m2,m3,m4,m5))#
+}
+
+
+</script>
+<script language="cache" method="cInitMe" arguments="PSV,bt1:%String">
+</script>
+
+
+<script language="cache" method="cPopView" arguments="PSV,d1,d2,d3,d4,d5:%String">
+	i PSV="" s SV="DSC"	
+	i PSV=1 s SV="ASC"
+	i PSV=2 s SV="DSC"
+	i PSV=3 s SV="ASCPN"
+	i PSV=4 s SV="DSCPN"
+	i PSV=5 s SV="ASCAN"
+	i PSV=6 s SV="DSCAN"
+	i PSV=7 s SV="ASCIN"
+	i PSV=8 s SV="DSCIN"
+	d PopGetData^cAllAlerts
+</script>
+
+<script language="cache" method="cSort" arguments="d1,d2:%String">
+	i d1=1 s SV="ASC"
+	i d1=2 s SV="DSC"
+	i d1=3 s SV="ASCPN"
+	i d1=4 s SV="DSCPN"
+	i d1=5 s SV="ASCAN"
+	i d1=6 s SV="DSCAN"
+	i d1=7 s SV="ASCIN"
+	i d1=8 s SV="DSCIN"
+	d PopGetData^cAllAlerts
+</script>
+<script language="cache" method="cAckbutton" arguments="d1,d2,d3,d4,d5:%String">
+	d Acknowledged^cAllAlerts
+</script>
+</html>
