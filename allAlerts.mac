@@ -1,0 +1,652 @@
+cAllAlerts
+	;display all alerts
+	;Angel Alba, Jason Bon Fadri, Chris Aries Gonzales
+	;08/01/2016
+	;version 3.0
+	q
+PopGetData	
+	d INIT^CSP999
+	#import MX
+	s xrow=1
+	k ^AllAlerts(SId,"All","MessageID")
+	k ^AAPresetNeuro(SId,"AllAlerts")
+	k ^CheckDateAckMessage(SId,"Patient","Email")
+	d PresetNeuro
+	d PresetCheckAcknowledge
+	d PresetCheckUnAcknowledge
+	d DateLimit
+	i d2'="" s d2=$zdateh(d2,ZDATE,,4,,,,,"")
+	i d3'="" s d3=$zdateh(d3,ZDATE,,4,,,,,"")
+	n i f i=1:1:22 s @("r"_i)=""
+	s (recordCount,RowNumber)=0
+	
+	s dtt=+$h
+ 	i d2="" s d2=$zdateh(dtlimit,4)
+	i d3="" s d3=+$h
+	i d1="Last24Hours" d
+	. s d2=+$h-1,d3=+$h
+	e  i d1="Last72Hours" d 
+	. s d2=+$h-3,d3=+$h
+	s SDate=dtlimit
+	s SDate=$zdateh(SDate,4)
+	
+	i ((d1="ShowResult")&((d3>dtt)!(d2>d3))) &js<document.getElementById('Records').innerHTML='Invalid Date Range!', document.getElementById('Records').style.color="red", document.getElementById('Records').style.fontWeight="bold"> q
+	i ((d1="ShowResult")&(d2<SDate)) &js<document.getElementById('Records').innerHTML='Records before this Date (#(dtlimit)#) belongs to the Old Version !', document.getElementById('Records').style.color="red", document.getElementById('Records').style.fontWeight="bold"> q
+	
+	&sql(DECLARE cPopAll CURSOR FOR
+ 		 SELECT  ID,CAST(DateAcknowledged AS DATE),CAST(DateCreated AS DATE),DateSent,Message,
+ 		 		 MessageType,Name,Patient,ReceipientType,RefNo,
+ 		 		 SendSuccess,SendVia,"To",Trial,Deleted_DelDate,
+ 		 		 Deleted_User,DateAcknowledged,DateCreated,DateSent,Trial->Code,
+ 		 		 MsgGroup,AlertLevel,CAST(DateSent AS DATE)
+  		 INTO :r1,:r2,:r3,:r4,:r5,
+  		 	  :r6,:r7,:r8,:r9,:r10,
+  		 	  :r11,:r12,:r13,:r14,:r15, 
+  		 	  :r16,:r17,:r18,:r19,:r20,
+  		 	  :r21,:r22,:r23
+ 		 FROM MX.MESSAGE
+ 		 WHERE IsNull(Patient->Deleted_DelDate,'')='' 
+ 		 AND IsNull(Deleted_DelDate,'')='' 
+ 		 AND MessageType = 'Pathology Result' 
+ 		 AND (Trial->Code LIKE (:d5)) 
+ 		 AND Trial->Code !='TOPAZ'
+ 		 AND SendVia IS NOT NULL
+ 		 AND MsgGroup LIKE '%||%'
+ 		 ORDER BY MX.MESSAGE.DateSent DESC
+  	 )
+ 	&sql(OPEN cPopAll)
+	 &sql(FETCH cPopAll)
+	 WHILE SQLCODE=0{
+	 s TestName=""
+	 i r22="777-3"  	s r22a=4
+	 i r22="14682-9"  	s r22a=4 
+	 i r22="751-8"  	s r22a=3 
+	 i r22="30000-4" 	s r22a=3 
+	 i r22="14959-1"  	s r22a=3 
+	 i r22="32294-1"  	s r22a=3 
+	 i r22="3016-3"  	s r22a=2 
+	 i r22="14297-6"  	s r22a=2 
+	 i r22="11579-0" 	s r22a=2 
+	 i r22="752-6"  	s r22a=2 
+	 i r22="799-7"   	s r22a=2 
+	 i r22="14290-1" 	s r22a=2 
+	 i r22="M0025"  	s r22a=2 
+	 i r22="13945-1" 	s r22a=2 
+	 i r22="30391-7" 	s r22a=2 
+	 i r22["718-7" d
+	 . i $p(r21,":",3)>=100 	s r22a=2
+	 . e  s r22a=3
+	 i r22'="" &sql(SELECT Name INTO :TestName FROM MX.Pathology WHERE Code=:r22)
+	 i r1'="" d
+	 . i d2'="",d3'="" d 
+	 .. i r3>=d2,r3<=d3 d
+	 ... s ^AllAlertsName(SId,"All","MessageID",r7)=r21
+	 ... s ^AllAlertsName(SId,"All","MessageID",r7,r21)=r1	
+	 ... s ^AllAlertsName(SId,"All","MessageID",r7,r21,r1)=r1_Q_r2_Q_r3_Q_r4_Q_r5_Q_r6_Q_r7_Q_r8_Q_r9_Q_r10_Q_r11_Q_r12_Q_r13_Q_r14_Q_r15_Q_r16_Q_r17_Q_r18_Q_r19_Q_r20_Q_r21_Q_r22_Q_r22a_Q_TestName_Q_r23		;s ^AllAlerts(SId,"All","MessageID",r22a,r21)=r1
+	 ... s ^AllAlerts(SId,"All","MessageID",r22a)=r21
+	 ... s ^AllAlerts(SId,"All","MessageID",r22a,r21)=r1	
+	 ... s ^AllAlerts(SId,"All","MessageID",r22a,r21,r1)=r1_Q_r2_Q_r3_Q_r4_Q_r5_Q_r6_Q_r7_Q_r8_Q_r9_Q_r10_Q_r11_Q_r12_Q_r13_Q_r14_Q_r15_Q_r16_Q_r17_Q_r18_Q_r19_Q_r20_Q_r21_Q_r22_Q_r22a_Q_TestName_Q_r23
+	 ... s ^AllAlertsByAnalyte(SId,"All","MessageID",TestName)=r21
+	 ... s ^AllAlertsByAnalyte(SId,"All","MessageID",TestName,r21)=r1	
+	 ... s ^AllAlertsByAnalyte(SId,"All","MessageID",TestName,r21,r1)=r1_Q_r2_Q_r3_Q_r4_Q_r5_Q_r6_Q_r7_Q_r8_Q_r9_Q_r10_Q_r11_Q_r12_Q_r13_Q_r14_Q_r15_Q_r16_Q_r17_Q_r18_Q_r19_Q_r20_Q_r21_Q_r22_Q_r22a_Q_TestName_Q_r23
+	 ... s ^AllAlertsByDateSent(SId,"All","MessageID",r4)=r21
+	 ... s ^AllAlertsByDateSent(SId,"All","MessageID",r4,r21)=r1	
+	 ... s ^AllAlertsByDateSent(SId,"All","MessageID",r4,r21,r1)=r1_Q_r2_Q_r3_Q_r4_Q_r5_Q_r6_Q_r7_Q_r8_Q_r9_Q_r10_Q_r11_Q_r12_Q_r13_Q_r14_Q_r15_Q_r16_Q_r17_Q_r18_Q_r19_Q_r20_Q_r21_Q_r22_Q_r22a_Q_TestName_Q_r23
+	 &sql(FETCH cPopAll)
+ 	}
+ 	&sql(CLOSE cPopAll)	
+ 	
+ 	i SV="ASC" d
+ 	.n i s AlertLevel="" f i=1:1 d  q:AlertLevel=""
+	.. s AlertLevel=$o(^AllAlerts(SId,"All","MessageID",AlertLevel)) q:AlertLevel=""
+	.. s MsgGroup=$g(^AllAlerts(SId,"All","MessageID",AlertLevel))
+	.. i MsgGroup'="" d PopGetData1
+	
+	i SV="DSC" d
+ 	.n i s AlertLevel="" f i=1:1 d  q:AlertLevel=""
+	.. s AlertLevel=$o(^AllAlerts(SId,"All","MessageID",AlertLevel),-1) q:AlertLevel=""
+	.. s MsgGroup=$g(^AllAlerts(SId,"All","MessageID",AlertLevel),-1)
+	.. i MsgGroup'="" d PopGetData1
+	
+ 	i SV="ASCPN" d
+ 	.n i s NameSort="" f i=1:1 d  q:NameSort=""
+	.. s NameSort=$o(^AllAlertsName(SId,"All","MessageID",NameSort)) q:NameSort=""
+	.. s MsgGroup=$g(^AllAlertsName(SId,"All","MessageID",NameSort))
+	.. i MsgGroup'="" d PopGetDataName1
+	
+	i SV="DSCPN" d
+ 	.n i s NameSort="" f i=1:1 d  q:NameSort=""
+	.. s NameSort=$o(^AllAlertsName(SId,"All","MessageID",NameSort),-1) q:NameSort=""
+	.. s MsgGroup=$g(^AllAlertsName(SId,"All","MessageID",NameSort),-1)
+	.. i MsgGroup'="" d PopGetDataName1
+	
+ 	i SV="ASCAN" d
+ 	.n i s Analyte="" f i=1:1 d  q:Analyte=""
+	.. s Analyte=$o(^AllAlertsByAnalyte(SId,"All","MessageID",Analyte)) q:Analyte=""
+	.. s MsgGroup=$g(^AllAlertsByAnalyte(SId,"All","MessageID",Analyte))
+	.. i MsgGroup'="" d PopGetDataByAnalyte
+	
+	i SV="DSCAN" d
+ 	.n i s Analyte="" f i=1:1 d  q:Analyte=""
+	.. s Analyte=$o(^AllAlertsByAnalyte(SId,"All","MessageID",Analyte),-1) q:Analyte=""
+	.. s MsgGroup=$g(^AllAlertsByAnalyte(SId,"All","MessageID",Analyte),-1)
+	.. i MsgGroup'="" d PopGetDataByAnalyte
+	
+	i SV="ASCIN" d
+ 	.n i s DateSent="" f i=1:1 d  q:DateSent=""
+	.. s DateSent=$o(^AllAlertsByDateSent(SId,"All","MessageID",DateSent)) q:DateSent=""
+	.. s MsgGroup=$g(^AllAlertsByDateSent(SId,"All","MessageID",DateSent))
+	.. i MsgGroup'="" d PopGetDataByInitial
+	
+	i SV="DSCIN" d
+ 	.n i s DateSent="" f i=1:1 d  q:DateSent=""
+	.. s DateSent=$o(^AllAlertsByDateSent(SId,"All","MessageID",DateSent),-1) q:DateSent=""
+	.. s MsgGroup=$g(^AllAlertsByDateSent(SId,"All","MessageID",DateSent),-1)
+	.. i MsgGroup'="" d PopGetDataByInitial
+	
+	i recordCount>0 &js<document.getElementById('Records').innerHTML='#(recordCount)# record(s) found ', document.getElementById('Records').style.color="black", document.getElementById('Records').style.fontWeight="bold"> 
+	 e  d  
+	 . &js<document.getElementById('Records').innerHTML='No record(s) found', document.getElementById('Records').style.color="black", document.getElementById('Records').style.fontWeight="bold">  
+	 . &js<document.getElementById("T1").value= "">
+	 . &js<document.getElementById("T2").value= "">
+	 	
+	q	
+
+PopGetDataName1
+	n ii s MsgGroup="" f ii=1:1 d  q:MsgGroup=""
+	. s MsgGroup=$o(^AllAlertsName(SId,"All","MessageID",NameSort,MsgGroup)) q:MsgGroup=""
+	. s MsgID=$g(^AllAlertsName(SId,"All","MessageID",NameSort,MsgGroup))
+	. i MsgGroup'="" d PopGetDataName2
+	q			 
+	
+PopGetDataName2
+	n iii s MsgID="" f iii=1:1 d  q:MsgID=""
+	.s MsgID=$o(^AllAlertsName(SId,"All","MessageID",NameSort,MsgGroup,MsgID)) q:MsgID=""
+	.s recMsg=$g(^AllAlertsName(SId,"All","MessageID",NameSort,MsgGroup,MsgID))
+	.n iiii f iiii=1:1:26 s @("r"_iiii)=$$C2H^CSP999($p(recMsg,Q,iiii))
+	. i r9="Patient",r12="Email" d 
+	.. d CheckPrimNeuro
+	.. d SetAcknowledged
+	.. i MsgGroup'="" s TestResult=$p(MsgGroup,":",3)   		
+	..&js<document.getElementById('tr4A').insertRow(#(xrow)#)>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(0),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(1),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(2),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(3),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(4),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(5),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(6),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(7),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(8),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(9),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(10),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[0].innerHTML='<center><span>#(r8)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[1].innerHTML='<center><span>#(r7)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[2].innerHTML='<center><span>#(r23)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[3].innerHTML='<center><span>#(r24)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[4].innerHTML='<span><center>#(TestResult)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[5].innerHTML='<span><center>#(initial)#</center></span>'>		
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[6].innerHTML='<span><center>#(FR)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[7].innerHTML='<span><center>#(SR)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[8].innerHTML='<span>#(GroupAck)#</span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[9].innerHTML='<center><span>#(FullNameNeuro)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[10].innerHTML='<span>#(GroupManualAck)#</span>'>
+	..i d4="Acknowledged" d
+	...i (dbtnctr=0) ! (pbtnctr=0)  d
+	....&js<document.getElementById("tr4A").deleteRow(#(xrow)#)> s xrow=xrow-1  
+	..i d4="Unacknowledged" d
+	...i (dbtnctr>0) & (pbtnctr>0) d 
+	..s xrow=xrow+1
+	..s recordCount=xrow-1
+	
+	q		
+	
+PopGetData1
+		n ii s MsgGroup="" f ii=1:1 d  q:MsgGroup=""
+  		. s MsgGroup=$o(^AllAlerts(SId,"All","MessageID",AlertLevel,MsgGroup)) q:MsgGroup=""
+  		. s MsgID=$g(^AllAlerts(SId,"All","MessageID",AlertLevel,MsgGroup))
+  		. i MsgGroup'="" d PopGetData2
+  		
+  		q
+  		 		
+PopGetData2
+	&js<alert("#(SV)#")>
+	n iii s MsgID="" f iii=1:1 d  q:MsgID=""
+	.s MsgID=$o(^AllAlerts(SId,"All","MessageID",AlertLevel,MsgGroup,MsgID)) q:MsgID=""
+	.s recMsg=$g(^AllAlerts(SId,"All","MessageID",AlertLevel,MsgGroup,MsgID))
+	.n iiii f iiii=1:1:26 s @("r"_iiii)=$$C2H^CSP999($p(recMsg,Q,iiii))
+	. i r9="Patient",r12="Email" d 
+	.. d CheckPrimNeuro
+	.. d SetAcknowledged
+	.. i MsgGroup'="" s TestResult=$p(MsgGroup,":",3)   		
+	..&js<document.getElementById('tr4A').insertRow(#(xrow)#)>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(0),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(1),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(2),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(3),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(4),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(5),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(6),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(7),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(8),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(9),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(10),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[0].innerHTML='<center><span>#(r8)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[1].innerHTML='<center><span>#(r7)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[2].innerHTML='<center><span>#(r23)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[3].innerHTML='<center><span>#(r24)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[4].innerHTML='<span><center>#(TestResult)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[5].innerHTML='<span><center>#(initial)#</center></span>'>		
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[6].innerHTML='<span><center>#(FR)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[7].innerHTML='<span><center>#(SR)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[8].innerHTML='<span>#(GroupAck)#</span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[9].innerHTML='<center><span>#(FullNameNeuro)# #(dbtnctr)#,#(pbtnctr)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[10].innerHTML='<span>#(GroupManualAck)#</span>'>
+	..i d4="Acknowledged" d
+	...i (dbtnctr=0) ! (pbtnctr=0)  d
+	....&js<document.getElementById("tr4A").deleteRow(#(xrow)#)> s xrow=xrow-1  
+	..i d4="Unacknowledged" d
+	...i (dbtnctr>0) & (pbtnctr>0) d
+	....&js<document.getElementById("tr4A").deleteRow(#(xrow)#)> s xrow=xrow-1   
+	..s xrow=xrow+1
+	..s recordCount=xrow-1
+	
+	q	
+	
+PopGetDataTry2
+	n iii s MsgID="" f iii=1:1 d  q:MsgID=""
+	.s MsgID=$o(^AllAlerts(SId,"All","MessageID",AlertLevel,MsgGroup,MsgID)) q:MsgID=""
+	.s recMsg=$g(^AllAlerts(SId,"All","MessageID",AlertLevel,MsgGroup,MsgID))
+	.n iiii f iiii=1:1:26 s @("r"_iiii)=$$C2H^CSP999($p(recMsg,Q,iiii))
+	. i r9="Patient",r12="Email" d 
+	.. d CheckPrimNeuro
+	.. d SetAcknowledged
+	.. i MsgGroup'="" s TestResult=$p(MsgGroup,":",3)   		
+	..&js<document.getElementById('tr4A').insertRow(#(xrow)#)>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(0),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(1),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(2),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(3),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(4),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(5),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(6),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(7),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(8),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(9),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(10),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[0].innerHTML='<center><span>#(r8)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[1].innerHTML='<center><span>#(r7)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[2].innerHTML='<center><span>#(r23)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[3].innerHTML='<center><span>#(r24)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[4].innerHTML='<span><center>#(TestResult)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[5].innerHTML='<span><center>#(initial)#</center></span>'>		
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[6].innerHTML='<span><center>#(FR)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[7].innerHTML='<span><center>#(SR)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[8].innerHTML='<span>#(GroupAck)#</span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[9].innerHTML='<center><span>#(FullNameNeuro)# #(dbtnctr)#,#(pbtnctr)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[10].innerHTML='<span>#(GroupManualAck)#</span>'>
+	..i d4="Acknowledged" d
+	...i (dbtnctr=0) ! (pbtnctr=0)  d
+	....&js<document.getElementById("tr4A").deleteRow(#(xrow)#)> s xrow=xrow-1  
+	..i d4="Unacknowledged" d
+	...i (dbtnctr>0) & (pbtnctr>0) d
+	....&js<document.getElementById("tr4A").deleteRow(#(xrow)#)> s xrow=xrow-1   
+	..s xrow=xrow+1
+	..s recordCount=xrow-1
+	
+	q		
+	
+PopGetDataByAnalyte
+	n ii s MsgGroup="" f ii=1:1 d  q:MsgGroup=""
+	. s MsgGroup=$o(^AllAlertsByAnalyte(SId,"All","MessageID",Analyte,MsgGroup)) q:MsgGroup=""
+	. s MsgID=$g(^AllAlertsByAnalyte(SId,"All","MessageID",Analyte,MsgGroup))
+	. i MsgGroup'="" d PopGetDataByAnalyte1
+	
+	q
+ 
+PopGetDataByAnalyte1
+	n iii s MsgID="" f iii=1:1 d  q:MsgID=""
+	.s MsgID=$o(^AllAlertsByAnalyte(SId,"All","MessageID",Analyte,MsgGroup,MsgID)) q:MsgID=""
+	.s recMsg=$g(^AllAlertsByAnalyte(SId,"All","MessageID",Analyte,MsgGroup,MsgID))
+	.n iiii f iiii=1:1:26 s @("r"_iiii)=$$C2H^CSP999($p(recMsg,Q,iiii))
+	. i r9="Patient",r12="Email" d 
+	.. d CheckPrimNeuro
+	.. d SetAcknowledged
+	.. i MsgGroup'="" s TestResult=$p(MsgGroup,":",3)   		
+	..&js<document.getElementById('tr4A').insertRow(#(xrow)#)>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(0),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(1),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(2),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(3),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(4),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(5),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(6),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(7),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(8),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(9),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(10),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[0].innerHTML='<center><span>#(r8)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[1].innerHTML='<center><span>#(r7)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[2].innerHTML='<center><span>#(r23)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[3].innerHTML='<center><span>#(r24)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[4].innerHTML='<span><center>#(TestResult)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[5].innerHTML='<span><center>#(initial)#</center></span>'>		
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[6].innerHTML='<span><center>#(FR)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[7].innerHTML='<span><center>#(SR)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[8].innerHTML='<span>#(GroupAck)#</span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[9].innerHTML='<center><span>#(FullNameNeuro)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[10].innerHTML='<span>#(GroupManualAck)#</span>'>
+	..i d4="Acknowledged" d
+	...i (dbtnctr=0) ! (pbtnctr=0)  d
+	....&js<document.getElementById("tr4A").deleteRow(#(xrow)#)> s xrow=xrow-1  
+	..i d4="Unacknowledged" d
+	...i (dbtnctr>0) & (pbtnctr>0) d 
+	..s xrow=xrow+1
+	..s recordCount=xrow-1
+	
+	q		
+	
+PopGetDataByInitial
+		n ii s MsgGroup="" f ii=1:1 d  q:MsgGroup=""
+  		. s MsgGroup=$o(^AllAlertsByDateSent(SId,"All","MessageID",DateSent,MsgGroup)) q:MsgGroup=""
+  		. s MsgID=$g(^AllAlertsByDateSent(SId,"All","MessageID",DateSent,MsgGroup))
+  		. i MsgGroup'="" d PopGetInitial
+  		
+  		q
+  		 		
+PopGetInitial
+	n iii s MsgID="" f iii=1:1 d  q:MsgID=""
+	.s MsgID=$o(^AllAlertsByDateSent(SId,"All","MessageID",DateSent,MsgGroup,MsgID)) q:MsgID=""
+	.s recMsg=$g(^AllAlertsByDateSent(SId,"All","MessageID",DateSent,MsgGroup,MsgID))
+	.n iiii f iiii=1:1:26 s @("r"_iiii)=$$C2H^CSP999($p(recMsg,Q,iiii))
+	. i r9="Patient",r12="Email" d 
+	.. d CheckPrimNeuro
+	.. d SetAcknowledged
+	.. i MsgGroup'="" s TestResult=$p(MsgGroup,":",3)   		
+	..&js<document.getElementById('tr4A').insertRow(#(xrow)#)>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(0),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(1),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(2),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(3),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(4),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(5),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(6),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(7),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(8),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(9),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].insertCell(10),document.getElementById('tr4A').rows[#(xrow)#].style.textAlign="left">
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[0].innerHTML='<center><span>#(r8)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[1].innerHTML='<center><span>#(r7)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[2].innerHTML='<center><span>#(r23)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[3].innerHTML='<center><span>#(r24)#</span></center>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[4].innerHTML='<span><center>#(TestResult)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[5].innerHTML='<span><center>#(initial)#</center></span>'>		
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[6].innerHTML='<span><center>#(FR)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[7].innerHTML='<span><center>#(SR)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[8].innerHTML='<span>#(GroupAck)#</span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[9].innerHTML='<center><span>#(FullNameNeuro)# #(dbtnctr)#,#(pbtnctr)#</center></span>'>
+	..&js<document.getElementById('tr4A').rows[#(xrow)#].cells[10].innerHTML='<span>#(GroupManualAck)#</span>'>
+	..i d4="Acknowledged" d
+	...i (dbtnctr=0) ! (pbtnctr=0)  d
+	....&js<document.getElementById("tr4A").deleteRow(#(xrow)#)> s xrow=xrow-1  
+	..i d4="Unacknowledged" d
+	...i (dbtnctr>0) & (pbtnctr>0) d 
+	..s xrow=xrow+1
+	..s recordCount=xrow-1
+	
+	q		
+
+PresetNeuro
+	#import MX
+	d INIT^CSP999
+	n ii f ii=1:1:4 s @("pn"_ii)=""
+	&sql(DECLARE cPresetNeuro CURSOR FOR 
+		SELECT Patient->ID,PatientTrials_Neurologist->ID,PatientTrials_Neurologist->FName,PatientTrials_Neurologist->LName
+		INTO :pn1,:pn2,:pn3,:pn4
+		FROM MX.Patient_PatientTrials
+		WHERE IsNull(Patient->Deleted_DelDate,'')='' AND IsNull(PatientTrials_Neurologist->Deleted_DelDate,'')=''
+		)
+	&sql(OPEN cPresetNeuro)
+	&sql(FETCH cPresetNeuro)
+	WHILE SQLCODE=0{	
+			i pn1'="" s ^AAPresetNeuro(SId,"AllAlerts",pn1)=pn3_" "_pn4
+	&sql(FETCH cPresetNeuro)
+	}
+ 	&sql(CLOSE cPresetNeuro) 	
+ 	
+	q	
+	
+PresetCheckAcknowledge
+	k ^CheckDateAckMessage(SId)
+	s Deli="| |"
+	&sql(DECLARE c1 CURSOR FOR
+	 SELECT ID,Patient,DateAcknowledged,MessageType,ReceipientType
+	 		,MsgGroup,SendVia,RecRefNo
+	 INTO :c1,:c2,:c3,:c4,:c5,
+	      :c6,:c7,:c8
+	 FROM MX.Message
+	 WHERE IsNull(Deleted_DelDate,'')=''
+	  AND MessageType='Pathology Result'
+	  AND MsgGroup LIKE '%||%' 
+	 )
+	 &sql(OPEN c1)
+	 &sql(FETCH c1)
+	 WHILE SQLCODE=0{
+  	
+  	 i c8'="",c6'="" d
+    . i ((c5="Patient")||(c5="Neurologist")) s recrefno=$e(c8,1,1) w c5_" : "_recrefno,!
+    . i ((c5="PatientDelegate")||(c5="NeurologistDelegate")) s recrefno=$e(c8,1,2) w c5_" : "_recrefno,!
+    . s ^CheckDateAckMessage(SId,c2,c5,c6,"Email",recrefno)=c3
+    
+	 i c2'="",c5'="",c7="Email",c3'="",c6'="" s ^CheckDateAckMessage(SId,c2,c5,c6,"Email")=c1_Deli_c2_Deli_c3_Deli_c4_Deli_c5_Deli_c6_Deli_c7
+	 i c7="SMS",c3'="",c6'="" i $d(^CheckDateAckMessage(SId,c2,c5,c6,"Email"))=0 s ^CheckDateAckMessage(SId,c2,c5,c6,"Email")=c1_Deli_c2_Deli_c3_Deli_c4_Deli_c5_Deli_c6_Deli_c7
+	 &sql(FETCH c1)
+	 }
+	 &sql(CLOSE c1)
+	 
+	q
+
+PresetCheckUnAcknowledge
+	k ^CheckDateUnAckMessage(SId)
+	s Deli="| |"
+	&sql(DECLARE c2 CURSOR FOR
+	 SELECT ID,Patient,DateAcknowledged,MessageType,ReceipientType
+	 		,MsgGroup,SendVia
+	 INTO :c1,:c2,:c3,:c4,:c5,
+	      :c6,:c7
+	 FROM MX.Message
+	 WHERE IsNull(Deleted_DelDate,'')=''
+	  AND MessageType='Pathology Result'
+	  AND MsgGroup LIKE '%||%' 
+	 )
+	 &sql(OPEN c2)
+	 &sql(FETCH c2)
+	 WHILE SQLCODE=0{
+  
+	 i c2'="",c5'="",c6'="" s ^CheckDateUnAckMessage(SId,c2,c5,c6,c7)=c1_Deli_c2_Deli_c3_Deli_c4_Deli_c5_Deli_c6_Deli_c7
+	 
+	 &sql(FETCH c2)
+	 }
+	 &sql(CLOSE c2)
+	 
+	q	
+	
+SetAcknowledged
+	
+	s (pbtnctr,dbtnctr)=0
+	s AckPat="" 	;Checking of Patient
+	s temAckPath=""
+	i $d(^CheckDateAckMessage(SId,r8,"Patient",r21,"Email",1)) i $g(^CheckDateAckMessage(SId,r8,"Patient",r21,"Email",1))'="" s temAckPath="<strong>Patient: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"Patient",r21,"Email",1))_"<br>"_temAckPath
+	s AckPat=temAckPath
+	
+	s AckPatDel="",xtemAckPathDel=""  ;Checking of Patient Delegates
+    s temAckPathDel=""
+    i $d(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",11)) i $g(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",11))'="" s temAckPathDel="<strong>Patient Delegate 1: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",11))_"<br>"_temAckPathDel
+    i $d(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",12)) i $g(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",12))'="" s temAckPathDel="<strong>Patient Delegate 2: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",12))_"<br>"_temAckPathDel
+    i $d(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",13)) i $g(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",13))'="" s temAckPathDel="<strong>Patient Delegate 3: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",13))_"<br>"_temAckPathDel
+    i $d(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",11))=0,$d(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",12))=0,$d(^CheckDateAckMessage(SId,r8,"PatientDelegate",r21,"Email",13))=0 s xtemAckPathDel="No Patient Delegate"
+    s AckPatDel=temAckPathDel
+    
+    
+	s AckNuero="" ; Checking of Neurologist
+	s temAckNeuro="",xtemAckNeuro=""
+	i $d(^CheckDateAckMessage(SId,r8,"Neurologist",r21,"Email",2)) i $g(^CheckDateAckMessage(SId,r8,"Neurologist",r21,"Email",2))'="" s temAckNeuro="<strong>Neurologist: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"Neurologist",r21,"Email",2))_"<br>"_temAckNeuro
+	i $d(^CheckDateAckMessage(SId,r8,"Neurologist",r21,"Email",3)) i $g(^CheckDateAckMessage(SId,r8,"Neurologist",r21,"Email",3))'="" s temAckNeuro="<strong>Referring Neurologist: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"Neurologist",r21,"Email",3))_"<br>"_temAckNeuro
+	i $d(^CheckDateAckMessage(SId,r8,"Neurologist",r21,"Email",2))=0,$d(^CheckDateAckMessage(SId,r8,"Neurologist",r21,"Email",3))=0 s xtemAckNeuro="No Neurologist"
+	s AckNuero=temAckNeuro
+	
+	s AckNueroDel="",xtemAckNeuroDel="" ;Checking of Neuro Delegates
+	s temAckNeuroDel=""
+    i $d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",21)) i $g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",21))'="" s temAckNeuroDel="<strong>Neurologist Delegate 1: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",21))_"<br>"_temAckNeuroDel
+    i $d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",22)) i $g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",22))'="" s temAckNeuroDel="<strong>Neurologist Delegate 2: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",22))_"<br>"_temAckNeuroDel
+    i $d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",23)) i $g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",23))'="" s temAckNeuroDel="<strong>Neurologist Delegate 3: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",23))_"<br>"_temAckNeuroDel
+    i $d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",31)) i $g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",31))'="" s temAckNeuroDel="<strong>Ref Neurologist Delegate 1: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",31))_"<br>"_temAckNeuroDel
+    i $d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",32)) i $g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",32))'="" s temAckNeuroDel="<strong>Ref Neurologist Delegate 2: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",32))_"<br>"_temAckNeuroDel
+    i $d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",33)) i $g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",33))'="" s temAckNeuroDel="<strong>Ref Neurologist Delegate 3: </strong>"_"<br>"_$g(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",33))_temAckNeuroDel
+    i $d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",21))=0,$d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",21))=0,$d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",22))=0,$d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",31))=0,$d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",32))=0,$d(^CheckDateAckMessage(SId,r8,"NeurologistDelegate",r21,"Email",33))=0 s xtemAckNeuroDel="No Neurologist Delegate"
+    s AckNueroDel=temAckNeuroDel
+    
+	s (GroupAck,GroupManualAck,BtnID1,BtnID2,BtnID3,BtnID4)=""
+	;Data Transfer throug The Acknowledged Button
+	s PatientIDOnClick=$p($g(^CheckDateUnAckMessage(SId,r8,"Patient",r21,r12)),"| |",2)
+	s Click2=$p($g(^CheckDateUnAckMessage(SId,r8,"Patient",r21,r12)),"| |",5)
+	s Click3=$p($g(^CheckDateUnAckMessage(SId,r8,"Patient",r21,r12)),"| |",6)
+	
+	s NeuroClick=$p($g(^CheckDateUnAckMessage(SId,r8,"Neurologist",r21,r12)),"| |",2)
+	s NClick2=$p($g(^CheckDateUnAckMessage(SId,r8,"Neurologist",r21,r12)),"| |",5)
+	s NClick3=$p($g(^CheckDateUnAckMessage(SId,r8,"Neurologist",r21,r12)),"| |",6)
+	
+	s NeuroDClick=$p($g(^CheckDateUnAckMessage(SId,r8,"NeurologistDelegate",r21,r12)),"| |",2)
+	s NDClick2=$p($g(^CheckDateUnAckMessage(SId,r8,"NeurologistDelegate",r21,r12)),"| |",5)
+	s NDClick3=$p($g(^CheckDateUnAckMessage(SId,r8,"NeurologistDelegate",r21,r12)),"| |",6)
+	
+	s PatientDIDOnClick=$p($g(^CheckDateUnAckMessage(SId,r8,"PatientDelegate",r21,r12)),"| |",2)
+	s PDClick2=$p($g(^CheckDateUnAckMessage(SId,r8,"PatientDelegate",r21,r12)),"| |",5)
+	s PDClick3=$p($g(^CheckDateUnAckMessage(SId,r8,"PatientDelegate",r21,r12)),"| |",6)
+	
+	i AckPat'="" s pbtnctr=pbtnctr+1 s GroupAck=GroupAck_AckPat s BtnID1=xrow_"C1" s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID1_""" id="""_BtnID1_""" value='PATIENT'  class='button5' onclick='jAckbutton("""_PatientIDOnClick_""","""_Click2_""","""_Click3_""","""_BtnID1_""","""_xrow_""")' style=' width:45%; float:left; 'disabled>PATIENT</button></span>"
+	e  s BtnID1=xrow_"C1" s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID1_""" id="""_BtnID1_""" value='PATIENT'  class='button' onclick='jAckbutton("""_PatientIDOnClick_""","""_Click2_""","""_Click3_""","""_BtnID1_""","""_xrow_""")' style=' width:45%; float:left; '>PATIENT</button></span>"
+	
+	i AckNuero="" s GroupAck=GroupAck_AckNuero   s BtnID2=xrow_"C2" s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID2_""" id="""_BtnID2_""" value='DOCTOR' class='button' onclick='jAckbutton("""_NeuroClick_""","""_NClick2_""","""_NClick3_""","""_BtnID2_""","""_xrow_""")' style='width:45%; float:right;' disabled>DOCTOR</button></span>"
+	
+	i AckNuero'="" s dbtnctr=dbtnctr+1  s GroupAck=GroupAck_AckNuero   s BtnID2=xrow_"C2" s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID2_""" id="""_BtnID2_""" value='DOCTOR' class='button5' onclick='jAckbutton("""_NeuroClick_""","""_NClick2_""","""_NClick3_""","""_BtnID2_""","""_xrow_""")' style='width:45%; float:right;' disabled>DOCTOR</button></span>"
+	;e  s BtnID2=xrow_"C2" s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID2_""" id="""_BtnID2_""" value='DOCTOR' class='button' onclick='jAckbutton("""_NeuroClick_""","""_NClick2_""","""_NClick3_""","""_BtnID2_""","""_xrow_""")' style='width:45%; float:right;' >DOCTOR</button></span>"
+	
+	i AckPatDel="" i xtemAckPathDel'="No Patient Delegate" s GroupAck=GroupAck_AckPatDel s BtnID3=xrow_"C3"  s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID3_""" id="""_BtnID3_""" value='PATIENT DELEGATE' onclick='jAckbutton("""_PatientDIDOnClick_""","""_PDClick2_""","""_PDClick3_""","""_BtnID3_""","""_xrow_""")' class='button' style=' width:45%;  float:left;'>PATIENT DELEGATE</button></span>"  		
+	i AckPatDel'="" i xtemAckPathDel'="No Patient Delegate"  s pbtnctr=pbtnctr+1 s GroupAck=GroupAck_AckPatDel s BtnID3=xrow_"C3"  s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID3_""" id="""_BtnID3_""" value='PATIENT DELEGATE' onclick='jAckbutton("""_PatientDIDOnClick_""","""_PDClick2_""","""_PDClick3_""","""_BtnID3_""","""_xrow_""")' class='button5' style=' width:45%;  float:left;' disabled>PATIENT DELEGATE</button></span>"  		
+	i AckPatDel="" i xtemAckPathDel="No Patient Delegate" s GroupAck=GroupAck_AckPatDel s BtnID3=xrow_"C3"  s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID3_""" id="""_BtnID3_""" value='PATIENT DELEGATE' onclick='jAckbutton("""_PatientDIDOnClick_""","""_PDClick2_""","""_PDClick3_""","""_BtnID3_""","""_xrow_""")' class='button3' style=' width:45%;  float:left;' disabled>PATIENT DELEGATE</button></span>"  		
+	;e  s BtnID3=xrow_"C3"  s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID3_""" id="""_BtnID3_""" value='PATIENT DELEGATE' onclick='jAckbutton("""_PatientDIDOnClick_""","""_PDClick2_""","""_PDClick3_""","""_BtnID3_""","""_xrow_""")' class='button3' style=' width:45%; float:left; margin-bottom:0px;  ' disabled>PATIENT DELEGATE</button></span>"
+	
+	i AckNueroDel="" i xtemAckNeuroDel'="No Neurologist Delegate" s GroupAck=GroupAck_AckNueroDel s BtnID4=xrow_"C4"  s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID4_""" id="""_BtnID4_"""  value='DOCTOR DELEGATE' class='button' onclick='jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")' style='width:45%; float:right; 'disabled>DOCTOR DELEGATE</button></span>"
+	i AckNueroDel'="" i xtemAckNeuroDel'="No Neurologist Delegate"  s dbtnctr=dbtnctr+1 s GroupAck=GroupAck_AckNueroDel s BtnID4=xrow_"C4"  s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID4_""" id="""_BtnID4_"""  value='DOCTOR DELEGATE' class='button5' onclick='jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")' style='width:45%; float:right; 'disabled>DOCTOR DELEGATE</button></span>"
+	i AckNueroDel="" i xtemAckNeuroDel="No Neurologist Delegate" s GroupAck=GroupAck_AckNueroDel s BtnID4=xrow_"C4"  s GroupManualAck=GroupManualAck_""_"<span><button name="""_BtnID4_""" id="""_BtnID4_"""  value='DOCTOR DELEGATE' class='button3' onclick='jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")' style='width:45%; float:right;' disabled>DOCTOR DELEGATE</button></span>"
+	
+	/*
+	i AckNuero'=""  i xtemAckNeuro'="No Neurologist" s GroupAck=GroupAck_AckNuero s BtnID2=xrow_"C2" s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID2_""" id="""_BtnID2_""" value='DOCTOR' class='' onclick='jAckbutton("""_NeuroClick_""","""_NClick2_""","""_NClick3_""","""_BtnID2_""","""_xrow_""")' style='width:50%; float:right; margin-bottom:5px;  font-size:10; display:inline; text-align: center; height:30px' disabled></button></span>" 		
+	i AckNueroDel'="" i xtemAckNeuroDel'="No Neurologist Delegate" s GroupAck=GroupAck_AckNueroDel s BtnID4=xrow_"C4"  s GroupManualAck=GroupManualAck_""_"<span><input type='button'name="""_BtnID4_""" id="""_BtnID4_"""  value='DOCTOR DELEGATE' class='' onclick='jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")' style='width:50%; float:right; margin-bottom:5px;  font-size:10; display:inline; text-align: center; height:30px'disabled></button></span>"
+	
+	i AckPat="" s BtnID1=xrow_"C1" s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID1_""" id="""_BtnID1_""" value='PATIENT'  class='buttons' onclick='jAckbutton("""_PatientIDOnClick_""","""_Click2_""","""_Click3_""","""_BtnID1_""","""_xrow_""")' style=' width:50%; float:left; margin-bottom:5px;  font-size:10; display:inline; text-align: center; vertical-align: middle; height:30px'></span>"
+	i AckNuero="" i xtemAckNeuro="No Neurologist" s BtnID2=xrow_"C2" s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID2_""" id="""_BtnID2_""" value='DOCTOR' class='buttons' onclick='jAckbutton("""_NeuroClick_""","""_NClick2_""","""_NClick3_""","""_BtnID2_""","""_xrow_""")' style='width:50%; float:right; margin-bottom:5px; color:red;  font-size:10; display:inline; text-align: center; height:30px'></span>"
+	i AckPatDel="" i xtemAckPathDel="No Patient Delegate" s BtnID3=xrow_"C3"  s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID3_""" id="""_BtnID3_""" value='PATIENT DELEGATE' onclick='jAckbutton("""_PatientDIDOnClick_""","""_PDClick2_""","""_PDClick3_""","""_BtnID3_""","""_xrow_""")' class='buttons' style=' width:50%;color:red; float:left; margin-bottom:5px;  font-size:10; display:inline; text-align: center; vertical-align: middle; height:30px'></span>"
+	i AckNueroDel="" i xtemAckNeuroDel="No Neurologist Delegate" s BtnID4=xrow_"C4"  s GroupManualAck=GroupManualAck_""_"<span><input type='button'name="""_BtnID4_""" id="""_BtnID4_"""  value='DOCTOR DELEGATE' class='buttons' onclick='jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")' style='width:50%; color:red;float:right; margin-bottom:5px;  font-size:10; display:inline; text-align: center; height:30px'></span>"
+	
+	/*
+	i AckPat'="" s BtnID1=xrow_"C1" s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID1_""" id="""_BtnID1_""" value='PATIENT'  class='' onclick='jAckbutton("""_PatientIDOnClick_""","""_Click2_""","""_Click3_""","""_BtnID1_""","""_xrow_""")' style=' width:50%; float:left; background-color:#898989; color:#CCCCCC;margin-bottom:5px; font-size:10; display:inline; text-align: center; vertical-align: middle; height:30px' disabled></span>"
+	i AckNuero'="" s BtnID2=xrow_"C2" s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID2_""" id="""_BtnID2_""" value='DOCTOR' class='' onclick='jAckbutton("""_NeuroClick_""","""_NClick2_""","""_NClick3_""","""_BtnID2_""","""_xrow_""")' style='width:50%; float:right; margin-bottom:5px;  font-size:10; display:inline; text-align: center; height:30px' disabled></span>"
+	i AckPatDel'="" s BtnID3=xrow_"C3"  s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID3_""" id="""_BtnID3_""" value='PATIENT DELEGATE' onclick='jAckbutton("""_PatientDIDOnClick_""","""_PDClick2_""","""_PDClick3_""","""_BtnID3_""","""_xrow_""")' class='' style=' width:50%; float:left; margin-bottom:5px;  font-size:10; display:inline; text-align: center; vertical-align: middle; height:30px' disabled></span>"
+	i AckNueroDel'="" s BtnID4=xrow_"C4"  s GroupManualAck=GroupManualAck_""_"<span><input type='button'name="""_BtnID4_""" id="""_BtnID4_"""  value='DOCTOR DELEGATE' class='' onclick='jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")' style='width:50%; float:right; margin-bottom:5px;  font-size:10; display:inline; text-align: center; height:30px' disabled></span>"
+	*/
+	
+	
+	/*
+	i AckPat'="Patient: " s GroupAck=GroupAck_AckPat   		
+	i AckPatDel'="Patient Delegate: " s GroupAck=GroupAck_AckPatDel   		
+	i AckNuero'="Neurologist: " s GroupAck=GroupAck_AckNuero   		
+	i AckNueroDel'="Neurologist Delegate: " s GroupAck=GroupAck_AckNueroDel
+	
+	i AckPat=""  s BtnID1=xrow_"C1" s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID1_""" id="""_BtnID1_""" value='PATIENT'  class='buttons' onclick='jAckbutton("""_PatientIDOnClick_""","""_Click2_""","""_Click3_""","""_BtnID1_""","""_xrow_""")' style=' width:50%; float:left; font-size:10; display:inline; text-align: center; vertical-align: middle; height:30px'></span>"
+	
+	
+	
+	i xtemAckNeuro="No Neurologist" s BtnID2=xrow_"C2" s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID2_""" id="""_BtnID2_""" value='DOCTOR' class='buttons' onclick='jAckbutton("""_NeuroClick_""","""_NClick2_""","""_NClick3_""","""_BtnID2_""","""_xrow_""")' style='width:50%; float:right; color:red; font-size:10; display:inline; text-align: center; height:30px' ></span>"
+	e  s BtnID2=xrow_"C2" s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID2_""" id="""_BtnID2_""" value='DOCTOR' class='buttons' onclick='jAckbutton("""_NeuroClick_""","""_NClick2_""","""_NClick3_""","""_BtnID2_""","""_xrow_""")' style='width:50%; float:right; font-size:10; display:inline; text-align: center; height:30px' ></span>"
+
+	i xtemAckPathDel="No Patient Delegate" s BtnID3=xrow_"C3"  s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID3_""" id="""_BtnID3_""" value='PATIENT DELEGATE' onclick='jAckbutton("""_PatientDIDOnClick_""","""_PDClick2_""","""_PDClick3_""","""_BtnID3_""","""_xrow_""")' class='buttons' style=' width:50%; float:left; color:red; font-size:10; display:inline; text-align: center; vertical-align: middle; height:30px' ></span>" 
+	e  s BtnID3=xrow_"C3"  s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID3_""" id="""_BtnID3_""" value='PATIENT DELEGATE' onclick='jAckbutton("""_PatientDIDOnClick_""","""_PDClick2_""","""_PDClick3_""","""_BtnID3_""","""_xrow_""")' class='buttons' style=' width:50%; float:left; font-size:10; display:inline; text-align: center; vertical-align: middle; height:30px' ></span>" 
+	
+	i xtemAckNeuroDel="No Neurologist Delegate" s BtnID4=xrow_"C4"  s GroupManualAck=GroupManualAck_""_"<span><input type='button'name="""_BtnID4_""" id="""_BtnID4_"""  value='DOCTOR DELEGATE' class='buttons' onclick='jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")' style='width:50%; float:right; color:red; font-size:10; display:inline; text-align: center; height:30px'></span>"
+	e  s BtnID4=xrow_"C4"  s GroupManualAck=GroupManualAck_""_"<span><input type='button'name="""_BtnID4_""" id="""_BtnID4_"""  value='DOCTOR DELEGATE' class='buttons' onclick='jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")' style='width:50%; float:right; font-size:10; display:inline; text-align: center; height:30px'></span>"
+	
+	/*
+	i AckPat=""  s BtnID1=xrow_"C1" s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID1_""" id="""_BtnID1_""" value='PATIENT'  class='buttons' onclick='jAckbutton("""_PatientIDOnClick_""","""_Click2_""","""_Click3_""","""_BtnID1_""","""_xrow_""")' style=' width:50%; float:left; font-size:10; display:inline; text-align: center; vertical-align: middle; height:30px'></span>"
+	i AckNuero="" i xtemAckNeuro'="No Neurologist" s BtnID2=xrow_"C2" s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID2_""" id="""_BtnID2_""" value='DOCTOR' class='buttons' onclick='jAckbutton("""_NeuroClick_""","""_NClick2_""","""_NClick3_""","""_BtnID2_""","""_xrow_""")' style='width:50%; float:right; font-size:10; display:inline; text-align: center; height:30px' ></span>"
+
+	i AckPatDel="" i xtemAckPathDel'="No Patient Delegate" s BtnID3=xrow_"C3"  s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID3_""" id="""_BtnID3_""" value='PATIENT DELEGATE' onclick='jAckbutton("""_PatientDIDOnClick_""","""_PDClick2_""","""_PDClick3_""","""_BtnID3_""","""_xrow_""")' class='buttons' style=' width:50%; float:left; font-size:10; display:inline; text-align: center; vertical-align: middle; height:30px' ></span>" 
+	e  s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID3_""" id="""_BtnID3_""" value='PATIENT DELEGATE' onclick='jAckbutton("""_PatientDIDOnClick_""","""_PDClick2_""","""_PDClick3_""","""_BtnID3_""","""_xrow_""")'  style=' width:50%; float:left; font-size:10; display:inline; text-align: center; vertical-align: middle; height:30px' disabled></span>" 
+	
+	i AckNueroDel="" i xtemAckNeuroDel'="No Neurologist Delegate" s BtnID4=xrow_"C4"  s GroupManualAck=GroupManualAck_""_"<span><input type='button'name="""_BtnID4_""" id="""_BtnID4_"""  value='DOCTOR DELEGATE' class='buttons' onclick='jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")' style='width:50%; float:right; font-size:10; display:inline; text-align: center; height:30px'></span>"
+	e  s BtnID4=xrow_"C4"  s GroupManualAck=GroupManualAck_""_"<span><input type='button'name="""_BtnID4_""" id="""_BtnID4_"""  value='DOCTOR DELEGATE'  onclick='jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")' style='width:50%; float:right; font-size:10; display:inline; text-align: center; height:30px ' disabled></span>"
+	
+	i AckNuero'="",xtemAckNeuro'="No Neurologist" s BtnID2=xrow_"C2" s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID2_""" id="""_BtnID2_""" value='DOCTOR' class='' onclick='jAckbutton("""_NeuroClick_""","""_NClick2_""","""_NClick3_""","""_BtnID2_""","""_xrow_""")' style='width:50%; float:right; margin-bottom:5px;  font-size:10; display:inline; text-align: center; height:30px' disabled></span>"
+	i AckPatDel'="",xtemAckPathDel'="No Patient Delegate" s BtnID3=xrow_"C3"  s GroupManualAck=GroupManualAck_""_"<span><input type='button' name="""_BtnID3_""" id="""_BtnID3_""" value='PATIENT DELEGATE' onclick='jAckbutton("""_PatientDIDOnClick_""","""_PDClick2_""","""_PDClick3_""","""_BtnID3_""","""_xrow_""")' class='' style=' width:50%; float:left; margin-bottom:5px;  font-size:10; display:inline; text-align: center; vertical-align: middle; height:30px' disabled></span>"
+	i AckNueroDel'="", xtemAckNeuroDel'="No Neurologist Delegate" s BtnID4=xrow_"C4"  s GroupManualAck=GroupManualAck_""_"<span><input type='button'name="""_BtnID4_""" id="""_BtnID4_"""  value='DOCTOR DELEGATE' class='' onclick='jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")' style='width:50%; float:right; margin-bottom:5px;  font-size:10; display:inline; text-align: center; height:30px' disabled></span>"
+	*/
+	
+	s (FR,SR,initial)=""
+		 
+	n i s LastDate="" f i=1:1 d  q:LastDate=""
+	. s LastDate=$o(^ResendReminderHistory("MessageID",r1,"LastSentDate",LastDate)) q:LastDate=""
+	. s rec=$g(^ResendReminderHistory("MessageID",r1,"LastSentDate",LastDate))
+	. i $p(rec,"*****",2)=0 s FR=$p(rec,"*****",5) s initial=LastDate
+	. i $p(rec,"*****",2)=1 s SR=$p(rec,"*****",5)
+	i initial="" s initial=r4
+	
+	s GroupManualAck=$$C2J^CSP999(GroupManualAck)
+
+	q
+	
+Acknowledged		
+	d INIT^CSP999
+	#import MX
+	s UserID=%session.Data("UserID")
+	s ModDate=$zdatetime($h,3,1)
+	i d4["C3" d
+	.&js<document.getElementById('tr4A').rows[#(d5)#].cells[8].innerHTML+='<span>Patient Delegate: <br> #(ModDate)#<br></span>'>
+	.&js<document.getElementById('tr4A').rows[#(d5)#].cells[8].innerHTML+='<span>Patient Delegate2: <br> #(ModDate)#</span>'>
+	.&js<document.getElementById('tr4A').rows[#(d5)#].cells[8].innerHTML+='<span>Patient Delegate3: <br> #(ModDate)#</span>'>
+	.&js<document.getElementById('#(d4)#').style.display="none">
+	.&js<document.getElementById('tr4A').rows[#(d5)#].cells[10].innerHTML+='<span><button name="""_BtnID4_""" id="""_BtnID4_""" value="PATIENT DELEGATE" onclick="jAckbutton("""_NeuroDClick_""","""_NDClick2_""","""_NDClick3_""","""_BtnID4_""","""_xrow_""")" class="button5" style="width:45%;" disabled>PATIENT DELEGATE</button></span>'> 	 
+
+	
+	i d4["C4" d
+	.&js<document.getElementById('tr4A').rows[#(d5)#].cells[8].innerHTML+='<span>Neurologist Delegate: <br> #(ModDate)#<br></span>'>
+	.&js<document.getElementById('tr4A').rows[#(d5)#].cells[8].innerHTML+='<span>Neurologist Delegate2: <br> #(ModDate)#</span>'>
+	.&js<document.getElementById('tr4A').rows[#(d5)#].cells[8].innerHTML+='<span>Neurologist Delegate3: <br> #(ModDate)#</span>'>
+	
+	;e  &js<document.getElementById('tr4A').rows[#(d5)#].cells[8].innerHTML+='<span>#(d2)#: #(ModDate)#</span>'>
+	
+	 ;&sql(UPDATE MX.MESSAGE SET DateAcknowledged=:ModDate, Modified_LogDate=:ModDate, Modified_User=:UserID WHERE Patient=:d1 AND ReceipientType=:d2 AND DateAcknowledged IS NULL AND MsgGroup =:d3)	 
+	 
+	 &js<document.getElementById('tr4A').rows[#(d5)#].cells[8].innerHTML+='<span><strong>#(d2)#: </strong><br>#(ModDate)#<br></span>'>	
+	 
+	 ;&js<document.getElementById('#(d4)#').style.display="none">
+
+	q
+
+DateLimit;Angel-Bon-Chris  06/17/2016
+	s (dtlimit,dtlimitc)=""
+	&sql(SELECT TOP 1(CAST(DATECREATED AS DATE)) INTO :dtlimit FROM MX.MESSAGE 
+		WHERE MSGGROUP LIKE '%||%' AND ISNULL(Deleted_DelDate,'')=''
+		ORDER BY DATECREATED)
+	i dtlimit'="" s dtlimit=$zd(dtlimit,4,1) 
+	q
+
+CheckPrimNeuro;Angel-Bon-Chris  08/17/2016
+ #import MX
+ s (FullNameNeuro,fname,lname) = "" 
+ 
+ &sql(SELECT PatientTrials_Neurologist->FName,PatientTrials_Neurologist->LName INTO :fname,:lname FROM MX.Patient_PatientTrials WHERE Patient->ID=:r8)
+ 
+ i r8'="" s FullNameNeuro=fname_" "_lname
+ 
+  q
